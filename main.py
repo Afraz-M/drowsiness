@@ -26,6 +26,7 @@ writer.writerow(["left_ear", "right_ear", "avg_ear", "label"])  # label: 1=drows
 cap = cv2.VideoCapture(0)
 print("Press 'a' to label ALERT, 'd' for DROWSY, 'q' to quit.")
 
+time = 0
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -34,7 +35,6 @@ while True:
     frame = imutils.resize(frame, width=600)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray)
-
     for face in faces:
         shape = predictor(gray, face)
         shape = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
@@ -45,7 +45,11 @@ while True:
         left_ear = eye_aspect_ratio(left_eye)
         right_ear = eye_aspect_ratio(right_eye)
         avg_ear = (left_ear + right_ear) / 2.0
-
+        if avg_ear < 0.2:
+            if time > 5:
+                print("ASLEEP")
+        else: 
+            time = 0
         cv2.putText(frame, f"EAR: {avg_ear:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
 
     cv2.imshow("Collecting EAR Data", frame)
